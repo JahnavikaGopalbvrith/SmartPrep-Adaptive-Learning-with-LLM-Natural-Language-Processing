@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Aptitude Quiz Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h1 class="text-xl font-bold mb-4 text-center">Start Aptitude Quiz</h1>
+        {% if error %}
+        <p class="text-red-500 mb-4">{{ error }}</p>
+        {% endif %}
+        <form method="post" class="space-y-4">
+            <div>
+                <label class="block mb-1">Difficulty:</label>
+                <select name="difficulty" required class="w-full p-2 border rounded">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            <div>
+                <label class="block mb-1">Number of Questions:</label>
+                <input type="number" name="num_questions" min="1" max="20" required class="w-full p-2 border rounded">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Start
+                Quiz</button>
+        </form>
+    </div>
+</body>
+
+</html>

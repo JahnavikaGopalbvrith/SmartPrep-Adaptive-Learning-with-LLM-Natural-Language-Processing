@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Aptitude Quiz Result</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center px-4">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-center mb-4 text-blue-700">Quiz Completed!</h1>
+        <p class="text-xl text-center mb-6">You scored <span class="font-semibold">{{ score }}</span> out of <span
+                class="font-semibold">{{ total }}</span></p>
+
+        {% if wrong_answers %}
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2 text-red-600">Incorrect Answers:</h2>
+            <div class="space-y-4">
+                {% for wa in wrong_answers %}
+                <div class="bg-red-50 border border-red-200 p-4 rounded">
+                    <p class="font-medium text-gray-800">Q: {{ wa.question }}</p>
+                    <p class="text-sm text-gray-700 mt-1">Your Answer: <span class="text-red-600 font-semibold">{{
+                            wa.your_answer }}</span></p>
+                    <p class="text-sm text-gray-700">Correct Answer: <span class="text-green-600 font-semibold">{{
+                            wa.correct_answer }}</span></p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <p class="text-green-600 text-center text-lg font-medium">Great job! All answers were correct 🎉</p>
+        {% endif %}
+
+        <div class="text-center mt-6">
+            <a href="/" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">Go Home</a>
+        </div>
+    </div>
+</body>
+
+</html>

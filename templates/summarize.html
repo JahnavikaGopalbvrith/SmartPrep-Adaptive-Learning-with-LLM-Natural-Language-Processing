@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Summarize Article</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-8">
+
+    <h1 class="text-3xl font-bold mb-6">Article Summarizer</h1>
+
+    <form method="post" class="mb-6 w-full max-w-3xl">
+        <label for="url" class="block mb-2 font-semibold">Enter Article URL</label>
+        <input id="url" name="url" type="url" placeholder="https://example.com/article" required
+            class="w-full p-3 rounded border border-gray-300" />
+        <button type="submit" class="mt-4 w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 transition">
+            Summarize
+        </button>
+    </form>
+
+    {% if summary %}
+    <h2 class="text-2xl font-semibold mb-3">Summary:</h2>
+    <div id="summary-container" class="prose max-w-3xl bg-white p-6 rounded shadow">
+        <pre id="raw-summary" class="whitespace-pre-wrap">{{ summary }}</pre>
+        <div id="formatted-summary" style="display:none;"></div>
+    </div>
+    {% endif %}
+
+    <script>
+        function convertBold(text) {
+            // Replace **bold** with <strong>bold</strong>
+            return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        }
+
+        function formatSummary(text) {
+            const lines = text.split('\n');
+
+            let html = '';
+            let inOrderedList = false;
+            let inUnorderedList = false;
+
+            function closeLists() {
+                if (inOrderedList) {
+                    html += '</ol>';
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    html += '</ul>';
+                    inUnorderedList = false;
+                }
+            }
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+
+                if (line === '') {
+                    closeLists();
+                    html += '<br />';
+                    continue;
+                }
+
+                // Check for headings: entire line is **heading**
+                const headingMatch = line.match(/^\*\*(.+?)\*\*$/);
+                if (headingMatch) {
+                    closeLists();
+                    const headingText = headingMatch[1].trim();
+
+                    if (/^(Uninformed|Types|Applications|Key Takeaways)/i.test(headingText)) {
+                        html += `<h2>${convertBold(headingText)}</h2>`;
+                    } else {
+                        html += `<h3>${convertBold(headingText)}</h3>`;
+                    }
+                    continue;
+                }
+
+                // Numbered list item
+                if (/^\d+\.\s+/.test(line)) {
+                    if (!inOrderedList) {
+                        closeLists();
+                        html += '<ol>';
+                        inOrderedList = true;
+                    }
+                    const cleanLine = line.replace(/^\d+\.\s+/, '');
+                    html += `<li>${convertBold(cleanLine)}</li>`;
+                    continue;
+                }
+
+                // Unordered list item
+                if (/^(\*|-|\+)\s+/.test(line)) {
+                    if (!inUnorderedList) {
+                        closeLists();
+                        html += '<ul>';
+                        inUnorderedList = true;
+                    }
+                    const cleanLine = line.replace(/^(\*|-|\+)\s+/, '');
+                    html += `<li>${convertBold(cleanLine)}</li>`;
+                    continue;
+                }
+
+                // Paragraph
+                closeLists();
+                html += `<p>${convertBold(line)}</p>`;
+            }
+
+            closeLists();
+            return html;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const raw = document.getElementById('raw-summary');
+            const formatted = document.getElementById('formatted-summary');
+
+            if (raw && formatted) {
+                const formattedHTML = formatSummary(raw.textContent);
+                formatted.innerHTML = formattedHTML;
+                raw.style.display = 'none';
+                formatted.style.display = 'block';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

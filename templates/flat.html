@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLAT Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center min-h-screen relative text-base leading-relaxed">
+
+    <!-- Home Button -->
+    <div class="absolute top-4 right-4">
+        <a href="/" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">Home</a>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="w-full max-w-4xl bg-white shadow-lg rounded-lg p-4 flex flex-row space-x-4 mt-20">
+
+        <!-- Chat Box -->
+        <div class="w-3/4 flex flex-col">
+            <h1 class="text-lg font-bold text-center mb-2">Learn FLAT</h1>
+            <div id="chat-box"
+                class="h-[500px] overflow-y-auto p-2 border border-gray-300 rounded-lg bg-gray-50 flex flex-col space-y-4 text-sm">
+                <!-- Messages appear here -->
+            </div>
+            <div class="mt-2 flex items-center space-x-2">
+                <input type="text" id="user-input"
+                    class="flex-1 border border-gray-300 rounded-lg p-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ask a question...">
+                <button onclick="sendMessage()"
+                    class="px-5 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition text-base">Send</button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="w-1/4 flex flex-col justify-center items-center space-y-4">
+            <div>
+                <a href="/flat_visualize_transition"
+                    class="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition text-sm">Go
+                    to Visualization</a>
+            </div>
+
+            <!-- Quiz Button -->
+            <form action="{{ url_for('flat_quiz_intro') }}" method="get">
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Quiz
+                    Me</button>
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-sm text-gray-500">
+        © Dept. of CSE
+    </footer>
+
+    <script>
+        function sendMessage() {
+            const inputField = document.getElementById("user-input");
+            const message = inputField.value.trim();
+            if (!message) return;
+    
+            addMessage("user", message);
+            addMessage("bot", "Thinking...");
+    
+            fetch("/flat_ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ question: message })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    removeLastBotMessage();
+                    addMessage("bot", data.answer || "Sorry, I couldn't understand that.");
+                    sessionStorage.setItem('flat_learned', true);
+                })
+                .catch(error => console.error("Error:", error));
+    
+            inputField.value = "";
+        }
+    
+        function addMessage(role, content) {
+            const chatBox = document.getElementById("chat-box");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `max-w-[75%] p-2 rounded-lg shadow-md ${role === "user" ? "bg-blue-500 text-white self-end" : "bg-gray-600 text-white self-start"}`;
+            messageDiv.innerHTML = formatMarkdown(content);
+    
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    
+        function removeLastBotMessage() {
+            const chatBox = document.getElementById("chat-box");
+            const messages = chatBox.getElementsByClassName("bg-gray-600");
+            if (messages.length) {
+                chatBox.removeChild(messages[messages.length - 1]);
+            }
+        }
+    
+        function startQuiz() {
+            if (sessionStorage.getItem('flat_learned')) {
+                window.location.href = "/flat_quiz_intro";
+            } else {
+                alert("Please learn something first by chatting with the bot!");
+            }
+        }
+    
+        function formatMarkdown(text) {
+            return text
+                .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-md mt-2 mb-1">$1</h4>')
+                .replace(/^### (.*$)/gim, '<h3 class="font-bold text-lg mt-2 mb-1">$1</h3>')
+                .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+    
+        // ✅ Only handle Enter when focused on chatbot input
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputField = document.getElementById("user-input");
+    
+            inputField.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+    
+
+</body>
+
+</html>

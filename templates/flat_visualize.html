@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLAT Transition Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans">
+
+    <!-- Header Section -->
+    <header class="bg-white-600 text-white p-4">
+        <div class="absolute top-4 right-4">
+            <a href="/"
+                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">Home</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto mt-12 px-4">
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Generate FLAT Transition Diagram</h1>
+
+            <!-- Input Section -->
+            <div class="mb-6">
+                <label for="transition-table" class="block text-lg font-semibold text-gray-700 mb-2">
+                    Enter Transition Table (JSON format):
+                </label>
+                <textarea id="transition-table" rows="6"
+                    class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Example: { \" q0\": { \"a\": \"q1\", \"b\": \"q0\" }, \"q1\": { \"a\": \"q2\", \"b\":
+                    \"q1\" }, \"q2\": { \"a\": \"q0\", \"b\": \"q2\" } }"></textarea>
+            </div>
+
+            <!-- Generate Diagram Button -->
+            <div class="text-center">
+                <button onclick="generateTransitionDiagram()"
+                    class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition">
+                    Generate Diagram
+                </button>
+            </div>
+        </div>
+
+        <!-- Diagram Display Section -->
+        <div id="diagram-container" class="mt-8 text-center">
+            <!-- Diagram will be displayed here -->
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-800 text-white text-center p-4 mt-12">
+        <p class="text-sm">&copy; 2025 Department of Computer Science and Engineering | FLAT Visualizer</p>
+    </footer>
+
+    <script>
+        function generateTransitionDiagram() {
+            const transitions = document.getElementById("transition-table").value.trim();
+            if (!transitions) {
+                alert("Please enter a valid transition table.");
+                return;
+            }
+
+            try {
+                const parsedTransitions = JSON.parse(transitions);
+
+                fetch("/generate_transition_diagram", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ transitions: parsedTransitions })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.image_url) {
+                            document.getElementById("diagram-container").innerHTML =
+                                `<img src="${data.image_url}" alt="Transition Diagram" class="max-w-full h-auto">`;
+                        } else {
+                            alert("Error generating diagram: " + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("There was an error with the transition table or diagram generation.");
+                    });
+            } catch (e) {
+                alert("Invalid JSON format. Please make sure the transition table is correct.");
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+        
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    // Only submit if not focused on a textarea (to avoid accidental submits)
+                    if (document.activeElement.tagName !== "TEXTAREA") {
+                        event.preventDefault(); // Prevent default just in case
+                        form.submit(); // Submit the form
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>
